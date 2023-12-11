@@ -1,3 +1,6 @@
+import java.awt.Polygon
+import java.awt.Shape
+
 enum class Directions(val dir: Pair<Int, Int>) {
     NORTH(Pair(-1, 0)),
     SOUTH(Pair(1, 0)),
@@ -124,29 +127,6 @@ fun main() {
         return steps / 2
     }
 
-    fun printSections(sections: MutableList<List<Pair<Int, Int>>>, charListInput: List<CharArray>) {
-        sections.forEach {section ->
-            val resultmatrix = mutableListOf<MutableList<String>>()
-            charListInput.forEachIndexed {indexY, row ->
-                val charList = mutableListOf<String>()
-                row.forEachIndexed { indexX, x ->
-                    if(section.contains(Pair(indexY, indexX))) {
-                        charList.add("X")
-                    } else {
-                        charList.add(".")
-                    }
-                }
-                resultmatrix.add(charList)
-            }
-            resultmatrix.forEach {
-                it.joinToString(" ").println()
-            }
-            println()
-            println()
-            println()
-        }
-    }
-
     fun part2(input: List<String>): Int {
         val charListInput = input.map { it.toCharArray() }
         val startingPointY = charListInput.indexOfFirst { it.contains('S') }
@@ -182,30 +162,21 @@ fun main() {
         }
 
         val loopList = loopCoordinates.toList()
-        val sections = mutableListOf<List<Pair<Int, Int>>>()
+        val polygon = Polygon(loopCoordinates.map { it.first }.toIntArray(), loopCoordinates.map { it.second }.toIntArray(), loopCoordinates.size)
 
-        loopList.forEachIndexed {index, pair ->
-            if (index < 3) return@forEachIndexed
-            val adjacentPairIndex = loopList.subList(0, index - 3).indexOfFirst {visitedPair ->
-                visitedPair == Pair(pair.first - 1, pair.second) || visitedPair == Pair(pair.first + 1, pair.second) || visitedPair == Pair(pair.first, pair.second -1) || visitedPair == Pair(pair.first, pair.second + 1)
-            }
-            if (adjacentPairIndex != -1) {
-                val section = loopList.subList(adjacentPairIndex, index + 1).toMutableList()
-                if(sections.isNotEmpty() && sections.subList(0, sections.size - 1).any { it.contains(loopList[adjacentPairIndex]) }) {
-                    println("position ${loopList[adjacentPairIndex]} is already part of a section. Skipping")
-                    return@forEachIndexed
+        var counter = 0
+        resultmatrix.forEachIndexed { indexY, strings ->
+            strings.forEachIndexed { indexX, s ->
+                if (s == ".") {
+                    if(polygon.contains(indexY, indexX)) {
+                        counter++
+                    }
                 }
-                if(section.any { pair -> sections.any { it.contains(pair) } }) {
-                    println("Section already contains used elements. Skipping")
-                    sections.removeAt(sections.size - 1)
-                }
-                sections.add(loopList.subList(adjacentPairIndex, index + 1))
-                println("Found visited pair- Current Pair $pair, visited pair ${loopList[adjacentPairIndex]}, parts of border $section")
             }
         }
-        printSections(sections, charListInput)
 
-        return steps / 2
+
+        return counter
     }
 
 
